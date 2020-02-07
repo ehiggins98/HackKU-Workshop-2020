@@ -1,0 +1,36 @@
+body {
+	width: 100vw;
+	height: 100vh;
+	background-color: pink;
+	overflow: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: white;
+}
+
+#center-box {
+	width: 70vw;
+	height: 70vh;
+	background-color: #e75480;
+	text-align: center;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+#text-box {
+	width: 95%;
+	height: 80%;
+	text-align: left;
+	overflow-y: auto;
+	overflow-x: hidden;
+	border: 2px solid white;
+	padding-left: 10px;
+	border-radius: 10px;
+}
+
+p {
+	font-size: 20px;
+}
+
