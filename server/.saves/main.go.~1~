@@ -1,0 +1,105 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"math/rand"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+)
+
+var (
+	allNames []string = make([]string, 0, 16)
+)
+
+func main() {
+	r := mux.NewRouter()
+	handler := cors.Default().Handler(r)
+	srv := &http.Server{
+		Handler: handler,
+		Addr:    ":2020",
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	// Routes
+	r.HandleFunc("/", root).Methods(http.MethodGet)
+	r.HandleFunc("/random", random).Methods(http.MethodGet)
+	r.HandleFunc("/name/{name}", name).Methods(http.MethodGet)
+	r.HandleFunc("/sum", sum).Methods(http.MethodGet)
+	r.HandleFunc("/submit", submit).Methods(http.MethodPost)
+	r.HandleFunc("/get", get).Methods(http.MethodGet)
+
+	// Let it run
+	log.Println("Starting the server...")
+	if err := srv.ListenAndServe(); err != nil {
+		log.Println(err)
+	}
+}
+
+func root(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%s", "hello, world")
+}
+
+func random(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%s", fmt.Sprintf("Your random integer is %d", rand.Int31()))
+}
+
+func name(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%s", "Hello, "+name+"!")
+}
+
+func sum(w http.ResponseWriter, r *http.Request) {
+	// Get the query parameters path?a=...&b=...
+	a := r.URL.Query().Get("a")
+	b := r.URL.Query().Get("b")
+	// Check if all values were parsed
+	if a == "" || b == "" {
+		w.WriteHeader(http.StatusTeapot)
+		fmt.Fprintf(w, "%s", "a or b was not given")
+		return
+	}
+	aNum, err := strconv.Atoi(a)
+	if err != nil {
+		w.WriteHeader(http.StatusTeapot)
+		fmt.Fprintf(w, "%s", "Error occured while converting a to int: "+err.Error())
+		return
+	}
+	bNum, err := strconv.Atoi(b)
+	if err != nil {
+		w.WriteHeader(http.StatusTeapot)
+		fmt.Fprintf(w, "%s", "Error occured while converting b to int: "+err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%s", "a+b="+strconv.Itoa(aNum+bNum))
+}
+
+type userName struct {
+	Name string `json:"name"`
+}
+
+func submit(w http.ResponseWriter, r *http.Request) {
+	name := &userName{}
+	json.NewDecoder(r.Body).Decode(name)
+	allNames = append(allNames, name.Name)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%s", "Success")
+}
+
+func get(w http.ResponseWriter, r *http.Request) {
+	output, _ := json.Marshal(allNames)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%s", output)
+}

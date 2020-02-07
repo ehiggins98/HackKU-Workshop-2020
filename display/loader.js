@@ -1,4 +1,4 @@
-const baseUrl = "http://hi.sandy"
+const Url = "https://go.hackku.org/api/get"
 let loaded = 0
 
 function getNames() {
@@ -18,7 +18,7 @@ function getNames() {
 			loaded++;
 		}
 	})
-	request.open('GET', baseUrl)
+	request.open('GET', Url)
 	request.send()	
 
 }
